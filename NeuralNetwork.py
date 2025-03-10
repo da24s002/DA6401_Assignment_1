@@ -1,9 +1,9 @@
 import numpy as np
 import yaml
-import wandb
+# import wandb
 import sys
 
-wandb.login()
+# wandb.login()
 
 from keras.datasets import fashion_mnist
 from sklearn.model_selection import train_test_split
@@ -168,127 +168,130 @@ class VanillaNeuralNetwork:
                 weight_grad_offsets = [0 for index in range(len(self.weights))]
                 bias_grad_offsets = [0 for index in range(len(self.biases))]
                 # Backward pass
-                if (self.optimizer != 'nag'):
-                    (d_w_array, d_b_array) = self.backward(X_train_batch, y_train_batch, weight_offsets=weight_grad_offsets, bias_offsets=bias_grad_offsets, learning_rate=learning_rate)
-
+                # if (self.optimizer != 'nag'):
+                #     (d_w_array, d_b_array) = self.backward(X_train_batch, y_train_batch, weight_offsets=weight_grad_offsets, bias_offsets=bias_grad_offsets, learning_rate=learning_rate)
+                (d_w_array, d_b_array) = self.backward(X_train_batch, y_train_batch, weight_offsets=weight_grad_offsets, bias_offsets=bias_grad_offsets, learning_rate=learning_rate) 
                 # weight_gradient_history_list.append(d_w_array)
                 # bias_gradient_history_list.append(d_b_array)
 
+                
+                (self.weights, self.biases) = self.optimizer.optimize_params(
+                    self.weights, self.biases, d_w_array, d_b_array, self.beta_optimizer, self.beta1_optimizer, self.beta2_optimizer, learning_rate, self.weight_decay, self.epsilon_for_optimizer, self, X_train_batch, y_train_batch
+                )
+                
 
-                ## optimizers
+                # if (self.optimizer == 'sgd'):
+                #     param_update_weights = d_w_array
+                #     param_update_biases = d_b_array
+                #     effective_learning_rate_weights = [learning_rate for index in range(len(param_update_weights))]
+                #     effective_learning_rate_biases = [learning_rate for index in range(len(param_update_biases))]
 
-                if (self.optimizer == 'sgd'):
-                    param_update_weights = d_w_array
-                    param_update_biases = d_b_array
-                    effective_learning_rate_weights = [learning_rate for index in range(len(param_update_weights))]
-                    effective_learning_rate_biases = [learning_rate for index in range(len(param_update_biases))]
+                # elif (self.optimizer == 'momentum'):
+                #     if (param_update_weights == None):
+                #         param_update_weights = d_w_array
+                #         param_update_biases = d_b_array
+                #     else:
+                #         param_update_weights = [self.beta_optimizer * param_update_weights[index] + d_w_array[index] for index in range(len(param_update_weights))]
+                #         param_update_biases = [self.beta_optimizer * param_update_biases[index] + d_b_array[index] for index in range(len(param_update_biases))]
 
-                elif (self.optimizer == 'momentum'):
-                    if (param_update_weights == None):
-                        param_update_weights = d_w_array
-                        param_update_biases = d_b_array
-                    else:
-                        param_update_weights = [self.beta_optimizer * param_update_weights[index] + d_w_array[index] for index in range(len(param_update_weights))]
-                        param_update_biases = [self.beta_optimizer * param_update_biases[index] + d_b_array[index] for index in range(len(param_update_biases))]
+                #     effective_learning_rate_weights = [learning_rate for index in range(len(param_update_weights))]
+                #     effective_learning_rate_biases = [learning_rate for index in range(len(param_update_biases))]
 
-                    effective_learning_rate_weights = [learning_rate for index in range(len(param_update_weights))]
-                    effective_learning_rate_biases = [learning_rate for index in range(len(param_update_biases))]
+                # if (self.optimizer.name() == 'rmsprop'):
+                #     param_update_weights = d_w_array
+                #     param_update_biases = d_b_array
 
-                elif (self.optimizer == 'rmsprop'):
-                    param_update_weights = d_w_array
-                    param_update_biases = d_b_array
+                #     if (learning_rate_update_weights == None):
+                #         learning_rate_update_weights = [(1 - self.beta_optimizer) * np.square(d_w_array[index]) for index in range(len(d_w_array))]
+                #         learning_rate_update_biases = [(1 - self.beta_optimizer) * np.square(d_b_array[index]) for index in range(len(d_b_array))]
+                #     else:
+                #         learning_rate_update_weights = [
+                #             (self.beta_optimizer * learning_rate_update_weights[index]) + 
+                #             ((1 - self.beta_optimizer) * np.square(d_w_array[index])) for index in range(len(d_w_array))
+                #         ]
+                #         learning_rate_update_biases = [
+                #             (self.beta_optimizer * learning_rate_update_biases[index]) + 
+                #             ((1 - self.beta_optimizer) * np.square(d_b_array[index])) for index in range(len(d_b_array))
+                #         ]
 
-                    if (learning_rate_update_weights == None):
-                        learning_rate_update_weights = [(1 - self.beta_optimizer) * np.square(d_w_array[index]) for index in range(len(d_w_array))]
-                        learning_rate_update_biases = [(1 - self.beta_optimizer) * np.square(d_b_array[index]) for index in range(len(d_b_array))]
-                    else:
-                        learning_rate_update_weights = [
-                            (self.beta_optimizer * learning_rate_update_weights[index]) + 
-                            ((1 - self.beta_optimizer) * np.square(d_w_array[index])) for index in range(len(d_w_array))
-                        ]
-                        learning_rate_update_biases = [
-                            (self.beta_optimizer * learning_rate_update_biases[index]) + 
-                            ((1 - self.beta_optimizer) * np.square(d_b_array[index])) for index in range(len(d_b_array))
-                        ]
+                #     effective_learning_rate_weights = [learning_rate / np.sqrt(learning_rate_update_weights[index] + self.epsilon_for_optimizer) for index in range(len(learning_rate_update_weights))]
+                #     effective_learning_rate_biases = [learning_rate / np.sqrt(learning_rate_update_biases[index] + self.epsilon_for_optimizer) for index in range(len(learning_rate_update_biases))]
 
-                    effective_learning_rate_weights = [learning_rate / np.sqrt(learning_rate_update_weights[index] + self.epsilon_for_optimizer) for index in range(len(learning_rate_update_weights))]
-                    effective_learning_rate_biases = [learning_rate / np.sqrt(learning_rate_update_biases[index] + self.epsilon_for_optimizer) for index in range(len(learning_rate_update_biases))]
+                # elif (self.optimizer == 'nag'):
 
-                elif (self.optimizer == 'nag'):
+                #     ## TODO: debug (Tanh only)
+                #     if (param_update_weights == None):
+                #         weight_grad_offsets = [0 for index in range(len(self.weights))]
+                #         bias_grad_offsets = [0 for index in range(len(self.biases))]
+                #         (d_w_array, d_b_array) = self.backward(X_train_batch, y_train_batch, weight_offsets=weight_grad_offsets, bias_offsets=bias_grad_offsets, learning_rate=learning_rate)
 
-                    ## TODO: debug (Tanh only)
-                    if (param_update_weights == None):
-                        weight_grad_offsets = [0 for index in range(len(self.weights))]
-                        bias_grad_offsets = [0 for index in range(len(self.biases))]
-                        (d_w_array, d_b_array) = self.backward(X_train_batch, y_train_batch, weight_offsets=weight_grad_offsets, bias_offsets=bias_grad_offsets, learning_rate=learning_rate)
+                #         param_update_weights = d_w_array
+                #         param_update_biases = d_b_array
+                #         effective_learning_rate_weights = [learning_rate for index in range(len(param_update_weights))]
+                #         effective_learning_rate_biases = [learning_rate for index in range(len(param_update_biases))]
 
-                        param_update_weights = d_w_array
-                        param_update_biases = d_b_array
-                        effective_learning_rate_weights = [learning_rate for index in range(len(param_update_weights))]
-                        effective_learning_rate_biases = [learning_rate for index in range(len(param_update_biases))]
+                #     else:
+                #         weight_grad_offsets = [self.beta_optimizer*param_update_weights[index] for index in range(len(self.weights))]
+                #         bias_grad_offsets = [self.beta_optimizer*param_update_biases[index] for index in range(len(self.biases))]
+                #         (d_w_array, d_b_array) = self.backward(X_train_batch, y_train_batch, weight_offsets=weight_grad_offsets, bias_offsets=bias_grad_offsets, learning_rate=learning_rate)
 
-                    else:
-                        weight_grad_offsets = [self.beta_optimizer*param_update_weights[index] for index in range(len(self.weights))]
-                        bias_grad_offsets = [self.beta_optimizer*param_update_biases[index] for index in range(len(self.biases))]
-                        (d_w_array, d_b_array) = self.backward(X_train_batch, y_train_batch, weight_offsets=weight_grad_offsets, bias_offsets=bias_grad_offsets, learning_rate=learning_rate)
-
-                        param_update_weights = [(self.beta_optimizer * param_update_weights[index]) + d_w_array[index] for index in range(len(d_w_array))]
-                        param_update_biases = [(self.beta_optimizer * param_update_biases[index]) + d_b_array[index] for index in range(len(d_b_array))]
-                        effective_learning_rate_weights = [learning_rate for index in range(len(param_update_weights))]
-                        effective_learning_rate_biases = [learning_rate for index in range(len(param_update_biases))]
+                #         param_update_weights = [(self.beta_optimizer * param_update_weights[index]) + d_w_array[index] for index in range(len(d_w_array))]
+                #         param_update_biases = [(self.beta_optimizer * param_update_biases[index]) + d_b_array[index] for index in range(len(d_b_array))]
+                #         effective_learning_rate_weights = [learning_rate for index in range(len(param_update_weights))]
+                #         effective_learning_rate_biases = [learning_rate for index in range(len(param_update_biases))]
 
 
-                elif (self.optimizer == 'adam' or self.optimizer == 'nadam'):
-                    if (param_update_weights == None):
-                        param_update_weights = [d_w_array[index] * (1 - self.beta1_optimizer) for index in range(len(d_w_array))]
-                        param_update_biases = [d_b_array[index] * (1 - self.beta1_optimizer) for index in range(len(d_b_array))]
-                    else:
-                        param_update_weights = [self.beta1_optimizer * param_update_weights[index] + (1 - self.beta1_optimizer) * d_w_array[index] for index in range(len(param_update_weights))]
-                        param_update_biases = [self.beta1_optimizer * param_update_biases[index] + (1 - self.beta1_optimizer) * d_b_array[index] for index in range(len(param_update_biases))]
+                # elif (self.optimizer == 'adam' or self.optimizer == 'nadam'):
+                #     if (param_update_weights == None):
+                #         param_update_weights = [d_w_array[index] * (1 - self.beta1_optimizer) for index in range(len(d_w_array))]
+                #         param_update_biases = [d_b_array[index] * (1 - self.beta1_optimizer) for index in range(len(d_b_array))]
+                #     else:
+                #         param_update_weights = [self.beta1_optimizer * param_update_weights[index] + (1 - self.beta1_optimizer) * d_w_array[index] for index in range(len(param_update_weights))]
+                #         param_update_biases = [self.beta1_optimizer * param_update_biases[index] + (1 - self.beta1_optimizer) * d_b_array[index] for index in range(len(param_update_biases))]
 
-                    if (learning_rate_update_weights == None):
-                        learning_rate_update_weights = [(1 - self.beta2_optimizer) * np.square(d_w_array[index]) for index in range(len(d_w_array))]
-                        learning_rate_update_biases = [(1 - self.beta2_optimizer) * np.square(d_b_array[index]) for index in range(len(d_b_array))]
-                    else:
-                        learning_rate_update_weights = [
-                            (self.beta2_optimizer * learning_rate_update_weights[index]) + 
-                            ((1 - self.beta2_optimizer) * np.square(d_w_array[index])) for index in range(len(d_w_array))
-                        ]
-                        learning_rate_update_biases = [
-                            (self.beta2_optimizer * learning_rate_update_biases[index]) + 
-                            ((1 - self.beta2_optimizer) * np.square(d_b_array[index])) for index in range(len(d_b_array))
-                        ]
+                #     if (learning_rate_update_weights == None):
+                #         learning_rate_update_weights = [(1 - self.beta2_optimizer) * np.square(d_w_array[index]) for index in range(len(d_w_array))]
+                #         learning_rate_update_biases = [(1 - self.beta2_optimizer) * np.square(d_b_array[index]) for index in range(len(d_b_array))]
+                #     else:
+                #         learning_rate_update_weights = [
+                #             (self.beta2_optimizer * learning_rate_update_weights[index]) + 
+                #             ((1 - self.beta2_optimizer) * np.square(d_w_array[index])) for index in range(len(d_w_array))
+                #         ]
+                #         learning_rate_update_biases = [
+                #             (self.beta2_optimizer * learning_rate_update_biases[index]) + 
+                #             ((1 - self.beta2_optimizer) * np.square(d_b_array[index])) for index in range(len(d_b_array))
+                #         ]
                     
-                    learning_rate_update_weights = [learning_rate_update_weights[index] / (1 - (self.beta2_optimizer ** t)) for index in range(len(learning_rate_update_weights))]
-                    learning_rate_update_biases = [learning_rate_update_biases[index] / (1 - (self.beta2_optimizer ** t)) for index in range(len(learning_rate_update_biases))]
+                #     learning_rate_update_weights = [learning_rate_update_weights[index] / (1 - (self.beta2_optimizer ** t)) for index in range(len(learning_rate_update_weights))]
+                #     learning_rate_update_biases = [learning_rate_update_biases[index] / (1 - (self.beta2_optimizer ** t)) for index in range(len(learning_rate_update_biases))]
 
-                    param_update_weights = [param_update_weights[index] / (1 - (self.beta1_optimizer ** t)) for index in range(len(param_update_weights))]
-                    param_update_biases = [param_update_biases[index] / (1 - (self.beta1_optimizer ** t)) for index in range(len(param_update_biases))]
+                #     param_update_weights = [param_update_weights[index] / (1 - (self.beta1_optimizer ** t)) for index in range(len(param_update_weights))]
+                #     param_update_biases = [param_update_biases[index] / (1 - (self.beta1_optimizer ** t)) for index in range(len(param_update_biases))]
 
-                    effective_learning_rate_weights = [learning_rate / np.sqrt(learning_rate_update_weights[index] + self.epsilon_for_optimizer) for index in range(len(learning_rate_update_weights))]
-                    effective_learning_rate_biases = [learning_rate / np.sqrt(learning_rate_update_biases[index] + self.epsilon_for_optimizer) for index in range(len(learning_rate_update_biases))]
+                #     effective_learning_rate_weights = [learning_rate / np.sqrt(learning_rate_update_weights[index] + self.epsilon_for_optimizer) for index in range(len(learning_rate_update_weights))]
+                #     effective_learning_rate_biases = [learning_rate / np.sqrt(learning_rate_update_biases[index] + self.epsilon_for_optimizer) for index in range(len(learning_rate_update_biases))]
 
-                # effective_learning_rate, param_update_weights, param_update_biases = self.optimizer(weight_gradient_history_list, bias_gradient_history_list, self.beta_optimizer, learning_rate)
+                # # effective_learning_rate, param_update_weights, param_update_biases = self.optimizer(weight_gradient_history_list, bias_gradient_history_list, self.beta_optimizer, learning_rate)
 
-                # update params
-                for index in range(len(self.weights)):
-                    if (self.optimizer == 'nadam'):
-                        self.weights[index] -= (effective_learning_rate_weights[index] * ((self.beta1_optimizer * param_update_weights[index]) + ((1 - self.beta1_optimizer) * d_w_array[index]) / (1 - (self.beta1_optimizer ** t))) - (self.weight_decay * effective_learning_rate_weights[index] * self.weights[index]))
-                        self.biases[index] -= (effective_learning_rate_biases[index] * ((self.beta1_optimizer * param_update_biases[index]) + ((1 - self.beta1_optimizer) * d_b_array[index]) / (1 - (self.beta1_optimizer ** t))) - (self.weight_decay * effective_learning_rate_biases[index] * self.biases[index]))
-                    else:
-                        self.weights[index] -= (effective_learning_rate_weights[index] * param_update_weights[index] - (self.weight_decay * effective_learning_rate_weights[index] * self.weights[index]))
-                        self.biases[index] -= (effective_learning_rate_biases[index] * param_update_biases[index] - (self.weight_decay * effective_learning_rate_biases[index] * self.biases[index]))
+                # # update params
+                # for index in range(len(self.weights)):
+                #     if (self.optimizer == 'nadam'):
+                #         self.weights[index] -= (effective_learning_rate_weights[index] * ((self.beta1_optimizer * param_update_weights[index]) + ((1 - self.beta1_optimizer) * d_w_array[index]) / (1 - (self.beta1_optimizer ** t))) - (self.weight_decay * effective_learning_rate_weights[index] * self.weights[index]))
+                #         self.biases[index] -= (effective_learning_rate_biases[index] * ((self.beta1_optimizer * param_update_biases[index]) + ((1 - self.beta1_optimizer) * d_b_array[index]) / (1 - (self.beta1_optimizer ** t))) - (self.weight_decay * effective_learning_rate_biases[index] * self.biases[index]))
+                #     else:
+                #         self.weights[index] -= (effective_learning_rate_weights[index] * param_update_weights[index] - (self.weight_decay * effective_learning_rate_weights[index] * self.weights[index]))
+                #         self.biases[index] -= (effective_learning_rate_biases[index] * param_update_biases[index] - (self.weight_decay * effective_learning_rate_biases[index] * self.biases[index]))
 
                         
 
-                if (self.optimizer == 'adam' or self.optimizer == 'nadam'): # adjusting back the bias correction term so that we can have the actual term in the later iterations
-                    learning_rate_update_weights = [learning_rate_update_weights[index] * (1 - (self.beta2_optimizer ** t)) for index in range(len(learning_rate_update_weights))]
-                    learning_rate_update_biases = [learning_rate_update_biases[index] * (1 - (self.beta2_optimizer ** t)) for index in range(len(learning_rate_update_biases))]
+                # if (self.optimizer == 'adam' or self.optimizer == 'nadam'): # adjusting back the bias correction term so that we can have the actual term in the later iterations
+                #     learning_rate_update_weights = [learning_rate_update_weights[index] * (1 - (self.beta2_optimizer ** t)) for index in range(len(learning_rate_update_weights))]
+                #     learning_rate_update_biases = [learning_rate_update_biases[index] * (1 - (self.beta2_optimizer ** t)) for index in range(len(learning_rate_update_biases))]
 
-                    param_update_weights = [param_update_weights[index] * (1 - (self.beta1_optimizer ** t)) for index in range(len(param_update_weights))]
-                    param_update_biases = [param_update_biases[index] * (1 - (self.beta1_optimizer ** t)) for index in range(len(param_update_biases))]
+                #     param_update_weights = [param_update_weights[index] * (1 - (self.beta1_optimizer ** t)) for index in range(len(param_update_weights))]
+                #     param_update_biases = [param_update_biases[index] * (1 - (self.beta1_optimizer ** t)) for index in range(len(param_update_biases))]
 
-                    t += 1
+                #     t += 1
 
 
             # Compute loss
@@ -392,6 +395,222 @@ class SquaredErrorLoss:
     def derivative(self, output, target):
         m = target.shape[0]
         return (output - target)/m
+    
+
+## optimizers
+class SGD:
+    def name(self):
+        return "sgd"
+
+    def optimize_params(self, weights, biases, d_w_array, d_b_array, beta, beta1, beta2, learning_rate, weight_decay, epsilon_for_optimizer, nn, X, y):
+        for index in range(len(weights)):
+            weights[index] -= (learning_rate * d_w_array[index]  - (weight_decay * learning_rate * weights[index]))
+            biases[index] -= (learning_rate * d_b_array[index]  - (weight_decay * learning_rate * biases[index]))
+        return (weights, biases)
+
+class Momentum:
+    def __init__(self):
+        self.param_update_weights = None
+        self.param_update_biases = None
+
+    def name(self):
+        return "momentum"
+
+    def optimize_params(self, weights, biases, d_w_array, d_b_array, beta, beta1, beta2, learning_rate, weight_decay, epsilon_for_optimizer, nn, X, y):
+        if (self.param_update_weights == None):
+            self.param_update_weights = d_w_array
+            self.param_update_biases = d_b_array
+        else:
+            self.param_update_weights = [beta * self.param_update_weights[index] + d_w_array[index] for index in range(len(self.param_update_weights))]
+            self.param_update_biases = [beta * self.param_update_biases[index] + d_b_array[index] for index in range(len(self.param_update_biases))]
+        
+        for index in range(len(weights)):
+            weights[index] -= (learning_rate * self.param_update_weights[index] - (weight_decay * learning_rate * weights[index]))
+            biases[index] -= (learning_rate * self.param_update_biases[index] - (weight_decay * learning_rate * biases[index]))
+
+        return (weights, biases)
+    
+class Rmsprop:
+
+    def __init__(self):
+        self.param_update_weights = None
+        self.param_update_biases = None
+
+        self.learning_rate_update_weights = None
+        self.learning_rate_update_biases = None
+
+    def name(self):
+        return "rmsprop"
+
+
+    def optimize_params(self, weights, biases, d_w_array, d_b_array, beta, beta1, beta2, learning_rate, weight_decay, epsilon_for_optimizer, nn, X, y):
+        self.param_update_weights = d_w_array
+        self.param_update_biases = d_b_array
+        if (self.learning_rate_update_weights == None):
+            self.learning_rate_update_weights = [(1 - beta) * np.square(d_w_array[index]) for index in range(len(d_w_array))]
+            self.learning_rate_update_biases = [(1 - beta) * np.square(d_b_array[index]) for index in range(len(d_b_array))]
+        else:
+            self.learning_rate_update_weights = [
+                (beta * self.learning_rate_update_weights[index]) + 
+                ((1 - beta) * np.square(d_w_array[index])) for index in range(len(d_w_array))
+            ]
+            self.learning_rate_update_biases = [
+                (beta * self.learning_rate_update_biases[index]) + 
+                ((1 - beta) * np.square(d_b_array[index])) for index in range(len(d_b_array))
+            ]
+
+        effective_learning_rate_weights = [learning_rate / np.sqrt(self.learning_rate_update_weights[index] + epsilon_for_optimizer) for index in range(len(self.learning_rate_update_weights))]
+        effective_learning_rate_biases = [learning_rate / np.sqrt(self.learning_rate_update_biases[index] + epsilon_for_optimizer) for index in range(len(self.learning_rate_update_biases))]
+
+        for index in range(len(weights)):
+            
+            weights[index] -= (effective_learning_rate_weights[index] * self.param_update_weights[index] - (weight_decay * effective_learning_rate_weights[index] * weights[index]))
+            biases[index] -= (effective_learning_rate_biases[index] * self.param_update_biases[index] - (weight_decay * effective_learning_rate_biases[index] * biases[index]))
+
+        return (weights, biases)
+
+class Nag:
+    def __init__(self):
+        self.param_update_weights = None
+        self.param_update_biases = None
+
+
+    def name(self):
+        return "nag"
+    def optimize_params(self, weights, biases, d_w_array, d_b_array, beta, beta1, beta2, learning_rate, weight_decay, epsilon_for_optimizer, nn, X, y):
+        if (self.param_update_weights == None):
+
+            self.param_update_weights = d_w_array
+            self.param_update_biases = d_b_array
+
+        else:
+            weight_grad_offsets = [beta * self.param_update_weights[index] for index in range(len(weights))]
+            bias_grad_offsets = [beta * self.param_update_biases[index] for index in range(len(biases))]
+            (d_w_array, d_b_array) = nn.backward(X, y, weight_offsets=weight_grad_offsets, bias_offsets=bias_grad_offsets, learning_rate=learning_rate)
+
+            self.param_update_weights = [(beta * self.param_update_weights[index]) + d_w_array[index] for index in range(len(d_w_array))]
+            self.param_update_biases = [(beta * self.param_update_biases[index]) + d_b_array[index] for index in range(len(d_b_array))]
+
+        for index in range(len(weights)):
+            
+            weights[index] -= (learning_rate * self.param_update_weights[index] - (weight_decay * learning_rate * weights[index]))
+            biases[index] -= (learning_rate * self.param_update_biases[index] - (weight_decay * learning_rate * biases[index]))
+        return (weights, biases)
+    
+class Adam:
+    def __init__(self):
+        
+        self.param_update_weights = None
+        self.param_update_biases = None
+
+        self.learning_rate_update_weights = None
+        self.learning_rate_update_biases = None
+        self.t = 1
+    def name(self):
+        return "adam"
+    def optimize_params(self, weights, biases, d_w_array, d_b_array, beta, beta1, beta2, learning_rate, weight_decay, epsilon_for_optimizer, nn, X, y):
+        if (self.param_update_weights == None):
+            self.param_update_weights = [d_w_array[index] * (1 - beta1) for index in range(len(d_w_array))]
+            self.param_update_biases = [d_b_array[index] * (1 - beta1) for index in range(len(d_b_array))]
+        else:
+            self.param_update_weights = [beta1 * self.param_update_weights[index] + (beta1) * d_w_array[index] for index in range(len(self.param_update_weights))]
+            self.param_update_biases = [beta1 * self.param_update_biases[index] + (1 - beta1) * d_b_array[index] for index in range(len(self.param_update_biases))]
+
+        if (self.learning_rate_update_weights == None):
+            self.learning_rate_update_weights = [(1 - beta2) * np.square(d_w_array[index]) for index in range(len(d_w_array))]
+            self.learning_rate_update_biases = [(1 - beta2) * np.square(d_b_array[index]) for index in range(len(d_b_array))]
+        else:
+            self.learning_rate_update_weights = [
+                (beta2 * self.learning_rate_update_weights[index]) + 
+                ((1 - beta2) * np.square(d_w_array[index])) for index in range(len(d_w_array))
+            ]
+            self.learning_rate_update_biases = [
+                (beta2 * self.learning_rate_update_biases[index]) + 
+                ((1 - beta2) * np.square(d_b_array[index])) for index in range(len(d_b_array))
+            ]
+        
+        self.learning_rate_update_weights = [self.learning_rate_update_weights[index] / (1 - (beta2 ** self.t)) for index in range(len(self.learning_rate_update_weights))]
+        self.learning_rate_update_biases = [self.learning_rate_update_biases[index] / (1 - (beta2 ** self.t)) for index in range(len(self.learning_rate_update_biases))]
+
+        self.param_update_weights = [self.param_update_weights[index] / (1 - (beta1 ** self.t)) for index in range(len(self.param_update_weights))]
+        self.param_update_biases = [self.param_update_biases[index] / (1 - (beta1 ** self.t)) for index in range(len(self.param_update_biases))]
+
+        effective_learning_rate_weights = [learning_rate / np.sqrt(self.learning_rate_update_weights[index] + epsilon_for_optimizer) for index in range(len(self.learning_rate_update_weights))]
+        effective_learning_rate_biases = [learning_rate / np.sqrt(self.learning_rate_update_biases[index] + epsilon_for_optimizer) for index in range(len(self.learning_rate_update_biases))]
+
+        for index in range(len(weights)):
+            weights[index] -= (effective_learning_rate_weights[index] * self.param_update_weights[index] - (weight_decay * effective_learning_rate_weights[index] * weights[index]))
+            biases[index] -= (effective_learning_rate_biases[index] * self.param_update_biases[index] - (weight_decay * effective_learning_rate_biases[index] * biases[index]))
+
+        # adjusting back the bias correction term so that we can have the actual term in the later iterations
+        self.learning_rate_update_weights = [self.learning_rate_update_weights[index] * (1 - (beta2 ** self.t)) for index in range(len(self.learning_rate_update_weights))]
+        self.learning_rate_update_biases = [self.learning_rate_update_biases[index] * (1 - (beta2 ** self.t)) for index in range(len(self.learning_rate_update_biases))]
+
+        self.param_update_weights = [self.param_update_weights[index] * (1 - (beta1 ** self.t)) for index in range(len(self.param_update_weights))]
+        self.param_update_biases = [self.param_update_biases[index] * (1 - (beta1 ** self.t)) for index in range(len(self.param_update_biases))]
+
+        self.t += 1
+
+        return (weights, biases)
+    
+
+class Nadam:
+    def __init__(self):
+        
+        self.param_update_weights = None
+        self.param_update_biases = None
+
+        self.learning_rate_update_weights = None
+        self.learning_rate_update_biases = None
+        self.t = 1
+
+    def name(self):
+        return "nadam"
+
+    def optimize_params(self, weights, biases, d_w_array, d_b_array, beta, beta1, beta2, learning_rate, weight_decay, epsilon_for_optimizer, nn, X, y):
+        if (self.param_update_weights == None):
+            self.param_update_weights = [d_w_array[index] * (1 - beta1) for index in range(len(d_w_array))]
+            self.param_update_biases = [d_b_array[index] * (1 - beta1) for index in range(len(d_b_array))]
+        else:
+            self.param_update_weights = [beta1 * self.param_update_weights[index] + (beta1) * d_w_array[index] for index in range(len(self.param_update_weights))]
+            self.param_update_biases = [beta1 * self.param_update_biases[index] + (1 - beta1) * d_b_array[index] for index in range(len(self.param_update_biases))]
+
+        if (self.learning_rate_update_weights == None):
+            self.learning_rate_update_weights = [(1 - beta2) * np.square(d_w_array[index]) for index in range(len(d_w_array))]
+            self.learning_rate_update_biases = [(1 - beta2) * np.square(d_b_array[index]) for index in range(len(d_b_array))]
+        else:
+            self.learning_rate_update_weights = [
+                (beta2 * self.learning_rate_update_weights[index]) + 
+                ((1 - beta2) * np.square(d_w_array[index])) for index in range(len(d_w_array))
+            ]
+            self.learning_rate_update_biases = [
+                (beta2 * self.learning_rate_update_biases[index]) + 
+                ((1 - beta2) * np.square(d_b_array[index])) for index in range(len(d_b_array))
+            ]
+        
+        self.learning_rate_update_weights = [self.learning_rate_update_weights[index] / (1 - (beta2 ** self.t)) for index in range(len(self.learning_rate_update_weights))]
+        self.learning_rate_update_biases = [self.learning_rate_update_biases[index] / (1 - (beta2 ** self.t)) for index in range(len(self.learning_rate_update_biases))]
+
+        self.param_update_weights = [self.param_update_weights[index] / (1 - (beta1 ** self.t)) for index in range(len(self.param_update_weights))]
+        self.param_update_biases = [self.param_update_biases[index] / (1 - (beta1 ** self.t)) for index in range(len(self.param_update_biases))]
+
+        effective_learning_rate_weights = [learning_rate / np.sqrt(self.learning_rate_update_weights[index] + epsilon_for_optimizer) for index in range(len(self.learning_rate_update_weights))]
+        effective_learning_rate_biases = [learning_rate / np.sqrt(self.learning_rate_update_biases[index] + epsilon_for_optimizer) for index in range(len(self.learning_rate_update_biases))]
+
+        for index in range(len(weights)):
+            weights[index] -= (effective_learning_rate_weights[index] * ((beta1 * self.param_update_weights[index]) + ((1 - beta1) * d_w_array[index]) / (1 - (beta1 ** self.t))) - (weight_decay * effective_learning_rate_weights[index] * weights[index]))
+            biases[index] -= (effective_learning_rate_biases[index] * ((beta1 * self.param_update_biases[index]) + ((1 - beta1) * d_b_array[index]) / (1 - (beta1 ** self.t))) - (weight_decay * effective_learning_rate_biases[index] * biases[index]))
+
+        # adjusting back the bias correction term so that we can have the actual term in the later iterations
+        self.learning_rate_update_weights = [self.learning_rate_update_weights[index] * (1 - (beta2 ** self.t)) for index in range(len(self.learning_rate_update_weights))]
+        self.learning_rate_update_biases = [self.learning_rate_update_biases[index] * (1 - (beta2 ** self.t)) for index in range(len(self.learning_rate_update_biases))]
+
+        self.param_update_weights = [self.param_update_weights[index] * (1 - (beta1 ** self.t)) for index in range(len(self.param_update_weights))]
+        self.param_update_biases = [self.param_update_biases[index] * (1 - (beta1 ** self.t)) for index in range(len(self.param_update_biases))]
+
+        self.t += 1
+
+        return (weights, biases)
         
 
 
@@ -426,6 +645,15 @@ weight_initialization_dict = {
 loss_function_dict = {
     "cross_entropy": CrossEntropyLoss(),
     "mean_squared_error": SquaredErrorLoss()
+}
+
+optimizer_dict = {
+    "sgd": SGD(),
+    "momentum": Momentum(),
+    "nag": Nag(),
+    "rmsprop": Rmsprop(),
+    "adam": Adam(),
+    "nadam": Nadam()
 }
 
 
@@ -473,7 +701,7 @@ y_test_dict = {
 }
 
 
-wandb.init(entity="da24s002-indian-institute-of-technology-madras", project="DA6401_Assignment_1")
+# wandb.init(entity="da24s002-indian-institute-of-technology-madras", project="DA6401_Assignment_1")
 
 def main(args):
 
@@ -483,18 +711,20 @@ def main(args):
     hidden_layer_sizes = [hidden_layer_size] * hidden_layers
     activation_function = activation_dict[args.activation]
     weight_decay = args.weight_decay
-    optimizer = args.optimizer
+    optimizer_name = args.optimizer
     initializer = weight_initialization_dict[args.weight_init]
     epochs = args.epochs
     batch_size = args.batch_size
     learning_rate = args.learning_rate
-    if (optimizer == "momentum"):
+    if (optimizer_name == "momentum"):
         beta_optimizer = args.momentum
     else:
         beta_optimizer = args.beta
     beta1_optimizer = args.beta1
     beta2_optimizer = args.beta2
     epsilon_for_optimizer = args.epsilon
+
+    optimizer = optimizer_dict[optimizer_name]
 
     loss_function = loss_function_dict[args.loss]
     x_train_new = x_train_dict[args.dataset]
@@ -506,7 +736,7 @@ def main(args):
     x_test_new = x_test_dict[args.dataset]
     y_test_new = y_test_dict[args.dataset]
 
-    wandb.run.name = f"hls_{hidden_layer_size}_hl_{hidden_layers}_bs_{batch_size}_opt_{optimizer}_act_{args.activation}_id_test_data_{wandb.run.id}"
+    # wandb.run.name = f"hls_{hidden_layer_size}_hl_{hidden_layers}_bs_{batch_size}_opt_{optimizer_name}_act_{args.activation}_id_test_data_{wandb.run.id}"
 
     
 
@@ -539,7 +769,7 @@ def main(args):
     labels = ["T-shirt/top","Trouser","Pullover","Dress","Coat","Sandal","Shirt","Sneaker","Bag","Ankle boot"]
 
 
-    wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, y_true=y_test_compressed, preds=test_output_compressed, class_names=labels)})
+    # wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, y_true=y_test_compressed, preds=test_output_compressed, class_names=labels)})
     
 
 
@@ -565,22 +795,23 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--epochs", type=int, default=10, help="Number of epochs to train neural network.")
     parser.add_argument("-b", "--batch_size", type=int, default=64, help="Batch size used to train neural network.")
     parser.add_argument("-l", "--loss", type=str, default="cross_entropy", choices=["mean_squared_error", "cross_entropy"], help="Which loss function to use.")
-    parser.add_argument("-o", "--optimizer", type=str, default="adam", choices=["sgd", "momentum", "nag", "rmsprop", "adam", "nadam"], help="Which optimizer to use.")
-    parser.add_argument("-lr", "--learning_rate", type=float, default=0.00031403208880736246, help="Learning rate used to optimize model parameters.")
+    parser.add_argument("-o", "--optimizer", type=str, default="rmsprop", choices=["sgd", "momentum", "nag", "rmsprop", "adam", "nadam"], help="Which optimizer to use.")
+    parser.add_argument("-lr", "--learning_rate", type=float, default=0.00011708255968970672, help="Learning rate used to optimize model parameters.")
     parser.add_argument("-m", "--momentum", type=float, default=0.6, help="Momentum used by momentum and nag optimizers.")
     parser.add_argument("-beta", "--beta", type=float, default=0.6, help="Beta used by rmsprop optimizer.")
     parser.add_argument("-beta1", "--beta1", type=float, default=0.9, help="Beta1 used by adam and nadam optimizers.")
     parser.add_argument("-beta2", "--beta2", type=float, default=0.999, help="Beta2 used by adam and nadam optimizers.")
     parser.add_argument("-eps", "--epsilon", type=float, default=0.000001, help="Epsilon used by optimizers.")
-    parser.add_argument("-w_d", "--weight_decay", type=float, default=0.00000664420310002881, help="Weight decay used by optimizers.")
-    parser.add_argument("-w_i", "--weight_init", type=str, default="random", choices=["random", "xavier"], help="Which initialization strategy to use.")
+    parser.add_argument("-w_d", "--weight_decay", type=float, default=0.0000026013264510596, help="Weight decay used by optimizers.")
+    parser.add_argument("-w_i", "--weight_init", type=str, default="xavier", choices=["random", "xavier"], help="Which initialization strategy to use.")
 
-    parser.add_argument("-nhl", "--num_layers", type=int, default=5, help="Number of hidden layers used in feedforward neural network.")
+    parser.add_argument("-nhl", "--num_layers", type=int, default=3, help="Number of hidden layers used in feedforward neural network.")
     parser.add_argument("-sz", "--hidden_size", type=int, default=128, help="Number of hidden neurons in a feedforward layer.") 
-    parser.add_argument("-a", "--activation", type=str, default="relu", choices=["identity", "sigmoid", "tanh", "relu"], help="Which activation functions to use.")
+    parser.add_argument("-a", "--activation", type=str, default="tanh", choices=["identity", "sigmoid", "tanh", "relu"], help="Which activation functions to use.")
     
 
     args = parser.parse_args()
+    print(args.optimizer)
 
-    wandb.init(entity=args.wandb_entity, project=args.wandb_project)
+    # wandb.init(entity=args.wandb_entity, project=args.wandb_project)
     main(args)
