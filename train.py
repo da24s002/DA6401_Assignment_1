@@ -132,7 +132,7 @@ def main(args):
     test_output_compressed = nn.compress_output(test_output)
     y_test_compressed = nn.compress_output(y_test_new)
     test_accuracy = nn.accuracy(x_test_new, y_test_new)
-    print(test_accuracy)
+    print("Test accuracy:",test_accuracy)
     labels = ["T-shirt/top","Trouser","Pullover","Dress","Coat","Sandal","Shirt","Sneaker","Bag","Ankle boot"]
 
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         "wandb_project": "DA6401_Assignment_1",
         "wandb_entity": "puspak",
         "loss": "cross_entropy",
-        "dataset": "mnist",
+        "dataset": "fashion_mnist",
         "epsilon": 0.000001,
     }
 
