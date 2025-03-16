@@ -22,7 +22,7 @@ import argparse
 from optimizers import SGD, Momentum, Rmsprop, Nag, Adam, Nadam
 from activations import Sigmoid, Relu, Tanh
 from loss import CrossEntropyLoss, SquaredErrorLoss
-from initilizers import random_init, xavier_init
+from initializers import random_init, xavier_init
 from output import softmax
 from dataset_loader import dataset_loader
 

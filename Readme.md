@@ -104,7 +104,14 @@ parameters:
     min: 0.1
     distribution: log_uniform_values
 ```
-  
-  
-  
+## Modularizations supported  <br>
+If you want to add the following, please add them to these specific files, and then pass the proper arguments to make them work<br><br>
+
+new dataset to train on: dataset_loader.py<br>
+new initialization strategy: initilizers.py<br>
+new loss function: loss.py<br>
+new optimization algorithms: optimizers.py<br>
+new output function: output.py<br>
+
+
 
