@@ -115,3 +115,11 @@ new output function: output.py<br>
 
 ========================================================================================<br>
 The plot made in Question1 (1 sample from each image class from fashion mnist), is made using the Question1.py python file. Please run it in order to recreate the plot.
+
+<br>
+Link to Wandb Report:<br>
+https://wandb.ai/da24s002-indian-institute-of-technology-madras/DA6401_Assignment_1/reports/DA6401-Assignment-1--VmlldzoxMTU4MDEzMg
+
+<br>
+Link to Github Repository:<br>
+https://github.com/da24s002/DA6401_Assignment_1
