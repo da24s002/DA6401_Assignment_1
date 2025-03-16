@@ -113,5 +113,5 @@ new loss function: loss.py<br>
 new optimization algorithms: optimizers.py<br>
 new output function: output.py<br>
 
-========================================================================================
+========================================================================================<br>
 The plot made in Question1 (1 sample from each image class from fashion mnist), is made using the Question1.py python file. Please run it in order to recreate the plot.
