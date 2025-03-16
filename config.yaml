@@ -1,6 +1,6 @@
-program: "NeuralNetwork.py"
+program: "train.py"
 name: "DA6401_Assignment1_sweep"
-method: "random"
+method: "bayes"
 metric:
   goal: maximize
   name: validation_accuracy
@@ -27,6 +27,22 @@ parameters:
     values: ["random", "xavier"]
   activation:
     values: ["sigmoid", "tanh", "relu"]
+  momentum:
+    max: 0.999
+    min: 0.1
+    distribution: log_uniform_values
+  beta:
+    max: 0.999
+    min: 0.1
+    distribution: log_uniform_values
+  beta1:
+    max: 0.999
+    min: 0.1
+    distribution: log_uniform_values
+  beta2:
+    max: 0.999
+    min: 0.1
+    distribution: log_uniform_values
   
   
   
