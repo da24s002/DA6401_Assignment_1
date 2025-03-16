@@ -26,7 +26,7 @@ arguments supported :
 | `-w_i`, `--weight_init` | xavier | choices:  ["random", "xavier"] | 
 | `-nhl`, `--num_layers` | 5 | Number of hidden layers used in feedforward neural network. | 
 | `-sz`, `--hidden_size` | 128 | Number of hidden neurons in a feedforward layer. |
-| `-a`, `--activation` | relu | choices:  ["identity", "sigmoid", "tanh", "relu"] |
+| `-a`, `--activation` | relu | choices:  ["sigmoid", "tanh", "relu"] |
 
 The final test accuracy is reported in console after all the epochs are run.
 
